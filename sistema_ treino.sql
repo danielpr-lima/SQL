@@ -121,3 +121,36 @@ INSERT INTO usuarios (nome, email, senha, data_nascimento) VALUES ('Eduardo Fari
 select nome, preco from produtos order by preco asc;
 
 
+/*
+6.Encontre os produtos que têm mais de 50 unidades no estoque.
+7.Calcule o valor total do estoque de cada produto (preço * quantidade em estoque).
+8.Liste todos os pedidos com o nome do usuário que os realizou, ordenados pela data do pedido mais recente.
+9.Atualize o preço do produto "Camiseta" para R$49,99.
+10.Exclua todos os usuários que não possuem pedidos associados.
+*/
+
+
+--6.Encontre os produtos que têm mais de 50 unidades no estoque.
+
+select * from produtos where estoque > 50 order by estoque asc;
+
+--7.Calcule o valor total do estoque de cada produto (preço * quantidade em estoque)
+
+select *, preco * estoque as vl_total from produtos;
+
+--8.Liste todos os pedidos com o nome do usuário que os realizou, ordenados pela data do pedido mais recente.
+
+select usuarios.nome, pedidos.id, pedidos.data_pedido  from pedidos 
+inner join usuarios on pedidos.id_usuario = usuarios.id 
+order by data_pedido asc
+
+--9.Atualize o preço do produto "Camiseta" para R$49,99.
+
+update produtos set preco = 49.99 where nome = 'Camiseta' 
+
+--10.Exclua todos os usuários que não possuem pedidos associados.
+
+delete usuarios where id
+not in (
+	select id_usuario from pedidos
+	)
