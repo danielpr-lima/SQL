@@ -71,7 +71,7 @@ INSERT INTO produtos (nome, descricao, preco, estoque) VALUES
 
 -- Inserindo 10 pedidos
 INSERT INTO pedidos (id_usuario, total) VALUES
-(1, 239.98), (2, 439.98), (3, 179.98), (4, 229.97), (5, 289.97),
+(1, 239.78), (2, 439.98), (3, 179.98), (4, 229.97), (5, 289.97),
 (6, 359.98), (7, 479.98), (8, 179.98), (9, 249.97), (10, 219.97);
 
 -- Inserindo 10 itens de pedido
@@ -154,3 +154,63 @@ delete usuarios where id
 not in (
 	select id_usuario from pedidos
 	)
+
+
+/*
+11.Encontre os usuários que gastaram mais de R$350,00 em pedidos.
+12.Liste o total de vendas (soma dos valores dos pedidos) por produto.
+13.Encontre o produto mais vendido (com base na soma das quantidades nos itens de pedido).
+14.Exiba o nome do usuário e os detalhes do produto mais caro que ele comprou.
+15.Adicione uma nova coluna na tabela produtos para indicar se o produto está "Em promoção" (sim ou não), e atualize os valores com base em critérios de sua escolha.
+*/
+
+--11.Encontre os usuários que gastaram mais de R$350,00 em pedidos.
+
+SELECT usuarios.id, usuarios.nome, SUM(pedidos.total) AS total_gasto
+FROM usuarios
+JOIN pedidos ON usuarios.id = pedidos.id_usuario
+GROUP BY usuarios.id, usuarios.nome
+HAVING SUM(pedidos.total) > 350.00;  
+
+--12.Liste o total de vendas (soma dos valores dos pedidos) por produto.
+
+select pro.nome, sum(p.total) as total from itens_pedido ut
+join pedidos p on ut.id_pedido = p.id 
+join produtos pro on ut.id_produto = pro.id
+group by pro.nome
+order by total
+
+--13.Encontre o produto mais vendido (com base na soma das quantidades nos itens de pedido).
+
+select top 1 produtos.nome, SUM(itens_pedido.quantidade) as quantidade from itens_pedido
+inner join pedidos on pedidos.id = itens_pedido.id_pedido
+inner join produtos on produtos.id = itens_pedido.id_produto
+group by produtos.nome
+order by quantidade desc
+
+-- 14.Exiba o nome do usuário e os detalhes do produto mais caro que ele comprou.
+
+SELECT usuarios.nome AS nome_usuario, produtos.nome AS nome_produto, produtos.preco, itens_pedido.quantidade FROM usuarios
+INNER JOIN pedidos ON usuarios.id = pedidos.id_usuario
+INNER JOIN itens_pedido ON pedidos.id = itens_pedido.id_pedido
+INNER JOIN produtos ON itens_pedido.id_produto = produtos.id
+INNER JOIN (
+    SELECT id_pedido, MAX(preco_unitario) AS max_preco
+    FROM itens_pedido
+    JOIN produtos ON itens_pedido.id_produto = produtos.id
+    GROUP BY id_pedido
+) AS produtos_maximos ON itens_pedido.id_pedido = produtos_maximos.id_pedido AND itens_pedido.preco_unitario = produtos_maximos.max_preco
+ORDER BY usuarios.nome;
+
+--15.Adicione uma nova coluna na tabela produtos para indicar se o produto está "Em promoção" (sim ou não), e atualize os valores com base em critérios de sua escolha.
+
+ALTER TABLE produtos ADD em_promocao BIT;
+
+UPDATE produtos SET em_promocao = CASE
+WHEN preco > 100 THEN 
+	1  
+ELSE 
+	0                   
+END;
+
+
